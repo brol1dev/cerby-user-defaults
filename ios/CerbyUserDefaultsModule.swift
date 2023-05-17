@@ -1,7 +1,11 @@
 import ExpoModulesCore
 
+struct Keys {
+  static let userDefaultsKey = "myData"
+}
+
 public class CerbyUserDefaultsModule: Module {
-  let userDefaultsKey = "myData"
+  let keychain = KeychainSwift()
   
   // Each module class must implement the definition function. The definition consists of components
   // that describes the module's functionality and behavior.
@@ -12,18 +16,35 @@ public class CerbyUserDefaultsModule: Module {
     // The module will be accessible from `requireNativeModule('CerbyUserDefaults')` in JavaScript.
     Name("CerbyUserDefaults")
     
-    // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
-    Function("hello") {
-      return "Hello world! 👋 😇"
-    }
-    
-    AsyncFunction("saveData") { (value: String, promise: Promise) in
-      UserDefaults.standard.set(value, forKey: userDefaultsKey)
+    AsyncFunction("saveData") { (value: String, secure: Bool, promise: Promise) in
+      print("saving value: '\(value)'. Secure mode: \(secure)")
+      if secure {
+        if keychain.set(value, forKey: Keys.userDefaultsKey, withAccess: .accessibleWhenPasscodeSetThisDeviceOnly) {
+          promise.resolve("success")
+        } else {
+          promise.reject(UserDefaultsError.unauthorized)
+        }
+        return
+      }
+      
+      UserDefaults.standard.set(value, forKey: Keys.userDefaultsKey)
       promise.resolve("success")
+      
     }
     
-    AsyncFunction("getData") { (promise: Promise) in
-      let data = UserDefaults.standard.string(forKey: userDefaultsKey)
+    AsyncFunction("getData") { (secure: Bool, promise: Promise) in
+      print("retrieving value. Secure mode: \(secure)")
+      if secure {
+        let data = keychain.get(Keys.userDefaultsKey)
+        if let data = data {
+          promise.resolve(data)
+        } else {
+          promise.reject(UserDefaultsError.noData)
+        }
+        return
+      }
+      
+      let data = UserDefaults.standard.string(forKey: Keys.userDefaultsKey)
       if let data = data {
         promise.resolve(data)
       } else {
@@ -35,6 +56,7 @@ public class CerbyUserDefaultsModule: Module {
 
 enum UserDefaultsError : Error {
   case noData
+  case unauthorized
   case unexpected(code: Int)
 }
 
@@ -43,6 +65,8 @@ extension UserDefaultsError: CustomStringConvertible {
     switch self {
     case .noData:
       return "No data found."
+    case .unauthorized:
+      return "Not authorized for this operation."
     case .unexpected(_):
       return "Unexpected error."
     }

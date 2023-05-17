@@ -13,7 +13,7 @@ export default function App() {
   useEffect(() => {
     const getData = async () => {
       try {
-        const dataResult = (await CerbyUserDefaults.getData()) as string;
+        const dataResult = (await CerbyUserDefaults.getData(true)) as string;
         console.log("received data: ", dataResult);
         setData(dataResult);
       } catch (error) {
@@ -26,11 +26,14 @@ export default function App() {
 
   useEffect(() => {
     const sendData = async () => {
-      await CerbyUserDefaults.saveData(debouncedData);
+      await CerbyUserDefaults.saveData(debouncedData, true);
       console.log("saving: ", debouncedData);
     };
     sendData();
   }, [debouncedData]);
+
+  useEffect(() => {
+  }, [lockName]);
 
   const lockButtonPressed = () => {
     setLockName(lockName === "lock-open" ? "lock" : "lock-open");
