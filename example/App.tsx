@@ -1,8 +1,8 @@
 import * as CerbyUserDefaults from "cerby-user-defaults";
 import { useEffect, useState } from "react";
-import { SafeAreaView, StyleSheet, TextInput, View } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome5";
+import { SafeAreaView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import HorizontalNavigation from "./components/horizontalNavigation";
 import useDebounce from "./hooks/debounce";
 
 export default function App() {
@@ -32,26 +32,43 @@ export default function App() {
     sendData();
   }, [debouncedData]);
 
-  useEffect(() => {
-  }, [lockName]);
+  useEffect(() => {}, [lockName]);
 
   const lockButtonPressed = () => {
+    console.log("lockButtonPressed");
     setLockName(lockName === "lock-open" ? "lock" : "lock-open");
   };
 
+  const modeButtonPressed = () => {
+    console.log("modeButtonPressed");
+  };
+
+  const trashButtonPressed = () => {
+    console.log("trashButtonPressed");
+  };
+
+  const leftItems = [
+    {
+      name: "trash",
+      onPress: trashButtonPressed,
+    },
+  ];
+  const rightItems = [
+    {
+      name: "exchange-alt",
+      onPress: modeButtonPressed,
+    },
+    {
+      name: "lock",
+      onPress: lockButtonPressed,
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
+      <Text style={styles.titleText}>Save Note 👀 📝</Text>
+      <HorizontalNavigation leftItems={leftItems} rightItems={rightItems} />
       <View style={styles.textInputContainer}>
-        <Icon.Button
-          name={lockName}
-          size={25}
-          color="#a02"
-          backgroundColor="#fff"
-          iconStyle={{
-            marginRight: 0, // default value is 10.
-          }}
-          onPress={lockButtonPressed}
-        />
         <TextInput
           style={styles.textInput}
           editable
@@ -75,12 +92,18 @@ const styles = StyleSheet.create({
   textInputContainer: {
     flex: 1,
     width: "100%",
+    marginTop: 16,
     alignItems: "center",
   },
   textInput: {
+    flex: 1,
     width: "90%",
-    height: 200,
     borderColor: "#000",
     borderWidth: 1,
+  },
+  titleText: {
+    fontWeight: "bold",
+    fontSize: 26,
+    marginBottom: 16,
   },
 });
