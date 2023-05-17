@@ -5,10 +5,12 @@ import Icon from "react-native-vector-icons/FontAwesome5";
 interface HorizontalNavigationProps {
   leftItems: {
     name: string;
+    color?: string;
     onPress?: () => void;
   }[];
   rightItems: {
     name: string;
+    color?: string;
     onPress?: () => void;
   }[];
 }
@@ -25,7 +27,7 @@ const HorizontalNavigation = ({
             <Icon.Button
               name={item.name}
               size={25}
-              color="#00f"
+              color={item.color ?? "#00f"}
               backgroundColor="#fff"
               iconStyle={{
                 marginRight: 0, // default value is 10.
@@ -41,7 +43,7 @@ const HorizontalNavigation = ({
             <Icon.Button
               name={item.name}
               size={25}
-              color="#00f"
+              color={item.color ?? "#00f"}
               backgroundColor="#fff"
               iconStyle={{
                 marginRight: 0, // default value is 10.

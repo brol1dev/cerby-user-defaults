@@ -8,31 +8,43 @@ import useDebounce from "./hooks/debounce";
 export default function App() {
   const [data, setData] = useState("");
   const [lockName, setLockName] = useState("lock-open");
+  const [secureMode, setSecureMode] = useState(false);
+  const [secureButtonColor, setSecureButtonColor] = useState("#808080");
   const debouncedData = useDebounce(data);
 
+  const getData = async () => {
+    try {
+      const dataResult = (await CerbyUserDefaults.getData(
+        secureMode
+      )) as string;
+      setData(dataResult);
+    } catch (error) {
+      // The normal scenario here is that nothing was previously saved.
+      console.log(error);
+      setData("");
+    }
+  };
+
   useEffect(() => {
-    const getData = async () => {
-      try {
-        const dataResult = (await CerbyUserDefaults.getData(true)) as string;
-        console.log("received data: ", dataResult);
-        setData(dataResult);
-      } catch (error) {
-        // The normal scenario here is that nothing was previously saved.
-        console.log(error);
-      }
-    };
     getData();
   }, []);
 
   useEffect(() => {
     const sendData = async () => {
-      await CerbyUserDefaults.saveData(debouncedData, true);
-      console.log("saving: ", debouncedData);
+      await CerbyUserDefaults.saveData(debouncedData, secureMode);
     };
     sendData();
   }, [debouncedData]);
 
   useEffect(() => {}, [lockName]);
+
+  useEffect(() => {
+    if (secureMode) {
+      setSecureButtonColor("#00f");
+    } else {
+      setSecureButtonColor("#808080");
+    }
+  }, [secureMode]);
 
   const lockButtonPressed = () => {
     console.log("lockButtonPressed");
@@ -40,12 +52,19 @@ export default function App() {
   };
 
   const modeButtonPressed = () => {
+    setSecureMode(!secureMode);
     console.log("modeButtonPressed");
   };
 
   const trashButtonPressed = () => {
+    clear();
     console.log("trashButtonPressed");
+    getData();
   };
+
+  const clear = async () => {
+    await CerbyUserDefaults.clear();
+  }
 
   const leftItems = [
     {
@@ -56,10 +75,11 @@ export default function App() {
   const rightItems = [
     {
       name: "exchange-alt",
+      color: secureButtonColor,
       onPress: modeButtonPressed,
     },
     {
-      name: "lock",
+      name: lockName,
       onPress: lockButtonPressed,
     },
   ];
@@ -73,7 +93,6 @@ export default function App() {
           style={styles.textInput}
           editable
           multiline
-          numberOfLines={8}
           value={data}
           onChangeText={(text) => setData(text)}
         />
