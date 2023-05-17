@@ -1,6 +1,8 @@
 import ExpoModulesCore
 
 public class CerbyUserDefaultsModule: Module {
+  let userDefaultsKey = "myData"
+  
   // Each module class must implement the definition function. The definition consists of components
   // that describes the module's functionality and behavior.
   // See https://docs.expo.dev/modules/module-api for more details about available components.
@@ -9,36 +11,40 @@ public class CerbyUserDefaultsModule: Module {
     // Can be inferred from module's class name, but it's recommended to set it explicitly for clarity.
     // The module will be accessible from `requireNativeModule('CerbyUserDefaults')` in JavaScript.
     Name("CerbyUserDefaults")
-
-    // Sets constant properties on the module. Can take a dictionary or a closure that returns a dictionary.
-    Constants([
-      "PI": Double.pi
-    ])
-
-    // Defines event names that the module can send to JavaScript.
-    Events("onChange")
-
+    
     // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
     Function("hello") {
-      return "Hello world! 👋"
+      return "Hello world! 👋 😇"
     }
-
-    // Defines a JavaScript function that always returns a Promise and whose native code
-    // is by default dispatched on the different thread than the JavaScript runtime runs on.
-    AsyncFunction("setValueAsync") { (value: String) in
-      // Send an event to JavaScript.
-      self.sendEvent("onChange", [
-        "value": value
-      ])
+    
+    AsyncFunction("saveData") { (value: String, promise: Promise) in
+      UserDefaults.standard.set(value, forKey: userDefaultsKey)
+      promise.resolve("success")
     }
-
-    // Enables the module to be used as a native view. Definition components that are accepted as part of the
-    // view definition: Prop, Events.
-    View(CerbyUserDefaultsView.self) {
-      // Defines a setter for the `name` prop.
-      Prop("name") { (view: CerbyUserDefaultsView, prop: String) in
-        print(prop)
+    
+    AsyncFunction("getData") { (promise: Promise) in
+      let data = UserDefaults.standard.string(forKey: userDefaultsKey)
+      if let data = data {
+        promise.resolve(data)
+      } else {
+        promise.reject(UserDefaultsError.noData)
       }
+    }
+  }
+}
+
+enum UserDefaultsError : Error {
+  case noData
+  case unexpected(code: Int)
+}
+
+extension UserDefaultsError: CustomStringConvertible {
+  var description: String {
+    switch self {
+    case .noData:
+      return "No data found."
+    case .unexpected(_):
+      return "Unexpected error."
     }
   }
 }
