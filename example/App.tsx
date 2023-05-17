@@ -1,11 +1,13 @@
 import * as CerbyUserDefaults from "cerby-user-defaults";
 import { useEffect, useState } from "react";
 import { SafeAreaView, StyleSheet, TextInput, View } from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome5";
 
 import useDebounce from "./hooks/debounce";
 
 export default function App() {
   const [data, setData] = useState("");
+  const [lockName, setLockName] = useState("lock-open");
   const debouncedData = useDebounce(data);
 
   useEffect(() => {
@@ -30,9 +32,23 @@ export default function App() {
     sendData();
   }, [debouncedData]);
 
+  const lockButtonPressed = () => {
+    setLockName(lockName === "lock-open" ? "lock" : "lock-open");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.textInputContainer}>
+        <Icon.Button
+          name={lockName}
+          size={25}
+          color="#a02"
+          backgroundColor="#fff"
+          iconStyle={{
+            marginRight: 0, // default value is 10.
+          }}
+          onPress={lockButtonPressed}
+        />
         <TextInput
           style={styles.textInput}
           editable
