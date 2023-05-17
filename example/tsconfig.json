@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "cerby-user-defaults": ["../src/index"],
+      "cerby-user-defaults/*": ["../src/*"]
+    }
+  }
+}
