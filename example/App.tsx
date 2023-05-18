@@ -44,7 +44,12 @@ export default function App() {
   // Autosave logic.
   useEffect(() => {
     const sendData = async () => {
-      await CerbyUserDefaults.saveData(debouncedData, secureMode);
+      try {
+        await CerbyUserDefaults.saveData(debouncedData, secureMode);
+      } catch (error) {
+        // This happens for example when saving a value in secure mode and FaceID failed to authorize.
+        console.log(error);
+      }
     };
     sendData();
   }, [debouncedData]);

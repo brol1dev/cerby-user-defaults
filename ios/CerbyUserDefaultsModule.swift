@@ -72,7 +72,7 @@ public class CerbyUserDefaultsModule: Module {
     // Create an access control instance that dictates how the item can be read later.
     let access = SecAccessControlCreateWithFlags(nil, // Use the default allocator.
                                                  kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
-                                                 .userPresence,
+                                                 .biometryCurrentSet,
                                                  nil) // Ignore any error.
     
     guard let data = value.data(using: String.Encoding.utf8) else {
