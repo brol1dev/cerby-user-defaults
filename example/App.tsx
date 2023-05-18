@@ -10,7 +10,8 @@ export default function App() {
   const [lockName, setLockName] = useState("lock-open");
   const [secureMode, setSecureMode] = useState(false);
   const [secureButtonColor, setSecureButtonColor] = useState("#808080");
-  const debouncedData = useDebounce(data, 1000);
+  const [lockButtonColor, setLockButtonColor] = useState("#808080");
+  const debouncedData = useDebounce(data, 2000);
 
   const getData = async () => {
     try {
@@ -46,15 +47,13 @@ export default function App() {
   useEffect(() => {
     if (secureMode) {
       setSecureButtonColor("#00f");
+      setLockButtonColor("#00f");
     } else {
       setSecureButtonColor("#808080");
+      setLockButtonColor("#808080");
     }
     getData();
   }, [secureMode]);
-
-  // useEffect(() => {
-  //   if (lockName === lock)
-  // }, [lockName]);
 
   const lockButtonPressed = () => {
     console.log("lockButtonPressed");
@@ -95,6 +94,7 @@ export default function App() {
     },
     {
       name: lockName,
+      color: lockButtonColor,
       onPress: lockButtonPressed,
     },
   ];
