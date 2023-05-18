@@ -78,7 +78,7 @@ export default function App() {
   };
 
   const clear = async () => {
-    await CerbyUserDefaults.clear();
+    await CerbyUserDefaults.clear(secureMode);
   };
 
   const leftItems = [

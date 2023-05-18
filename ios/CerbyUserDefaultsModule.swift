@@ -19,47 +19,11 @@ public class CerbyUserDefaultsModule: Module {
     AsyncFunction("saveData") { (value: String, secure: Bool, promise: Promise) in
       print("saving value: '\(value)'. Secure mode: \(secure)")
       if secure {
-        // Create an access control instance that dictates how the item can be read later.
-        let access = SecAccessControlCreateWithFlags(nil, // Use the default allocator.
-                                                     kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
-                                                     .userPresence,
-                                                     nil) // Ignore any error.
-        
-        guard let data = value.data(using: String.Encoding.utf8) else {
-          promise.reject(UserDefaultsError.unauthorized)
+        if !saveToKeychain(value) {
+          promise.reject(UserDefaultsError.keychainSaveFailed)
           return
         }
         
-        // Build the query for use in the add operation.
-        let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
-                                    kSecAttrAccount as String: Keys.userDefaultsKey,
-                                    kSecAttrAccessControl as String: access as Any,
-                                    kSecUseAuthenticationContext as String: context,
-                                    kSecValueData as String: data]
-        
-        var status = SecItemAdd(query as CFDictionary, nil)
-        
-        if status == errSecDuplicateItem {
-          // Item already exist, thus update it.
-          let query: [String: Any] = [
-            kSecAttrAccount as String: Keys.userDefaultsKey,
-            kSecClass as String: kSecClassGenericPassword,
-          ]
-          
-          let attributesToUpdate = [kSecValueData: data] as CFDictionary
-          print("updating value: \(value)")
-          
-          // Update existing item
-          status = SecItemUpdate(query as CFDictionary, attributesToUpdate)
-        }
-        
-        guard status == errSecSuccess else {
-          print("save failed, status: \(status)")
-          promise.reject(UserDefaultsError.unauthorized)
-          return
-        }
-        
-        print("saved, status: \(status)")
         promise.resolve("success")
         return
       }
@@ -71,54 +35,104 @@ public class CerbyUserDefaultsModule: Module {
     AsyncFunction("getData") { (secure: Bool, promise: Promise) in
       print("retrieving value. Secure mode: \(secure)")
       if secure {
-        let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
-                                    kSecAttrAccount as String: Keys.userDefaultsKey,
-                                    kSecMatchLimit as String: kSecMatchLimitOne,
-                                    kSecReturnAttributes as String: true,
-                                    kSecUseAuthenticationContext as String: context,
-                                    kSecReturnData as String: true]
-        
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
-        print("keychain read status: \(status)")
-        guard status == errSecSuccess else {
+        guard let value = getFromKeychain() else {
           promise.reject(UserDefaultsError.noData)
           return
         }
-        
-        guard let existingItem = item as? [String: Any],
-              let valueData = existingItem[kSecValueData as String] as? Data,
-              let value = String(data: valueData, encoding: String.Encoding.utf8)
-        else {
-          print("keychain read failed")
-          promise.reject(UserDefaultsError.noData)
-          return
-        }
-        
-        print("getData value: \(value)")
         promise.resolve(value)
-        
-        //        let data = keychain.get(Keys.userDefaultsKey)
-        //        if let data = data {
-        //          promise.resolve(data)
-        //        } else {
-        //          promise.reject(UserDefaultsError.noData)
-        //        }
         return
       }
       
-      let data = UserDefaults.standard.string(forKey: Keys.userDefaultsKey)
-      if let data = data {
-        promise.resolve(data)
-      } else {
+      guard let data = UserDefaults.standard.string(forKey: Keys.userDefaultsKey) else {
         promise.reject(UserDefaultsError.noData)
+        return
       }
+      promise.resolve(data)
     }
     
-    AsyncFunction("clear") { (promise: Promise) in
-      print("clear")
+    AsyncFunction("clear") { (secure: Bool, promise: Promise) in
+      print("Clear value. Secure mode: \(secure)")
+      if secure {
+        let query: [String: Any] = [
+          kSecClass as String: kSecClassGenericPassword,
+          kSecAttrAccount as String: Keys.userDefaultsKey,
+        ]
+        
+        SecItemDelete(query as CFDictionary)
+        promise.resolve("success")
+        return
+      }
+      
       UserDefaults.standard.removeObject(forKey: Keys.userDefaultsKey)
       promise.resolve("success")
     }
+  }
+  
+  func saveToKeychain(_ value: String) -> Bool {
+    // Create an access control instance that dictates how the item can be read later.
+    let access = SecAccessControlCreateWithFlags(nil, // Use the default allocator.
+                                                 kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
+                                                 .userPresence,
+                                                 nil) // Ignore any error.
+    
+    guard let data = value.data(using: String.Encoding.utf8) else {
+      print("Save failed. Data could not be created.")
+      return false
+    }
+    
+    // Build the query for use in the add operation.
+    let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                kSecAttrAccount as String: Keys.userDefaultsKey,
+                                kSecAttrAccessControl as String: access as Any,
+                                kSecUseAuthenticationContext as String: context,
+                                kSecValueData as String: data]
+    
+    var status = SecItemAdd(query as CFDictionary, nil)
+    
+    if status == errSecDuplicateItem {
+      // Item already exist, thus update it.
+      let query: [String: Any] = [
+        kSecAttrAccount as String: Keys.userDefaultsKey,
+        kSecClass as String: kSecClassGenericPassword,
+      ]
+      
+      let attributesToUpdate = [kSecValueData: data] as CFDictionary
+      print("Updating value: \(value)")
+      
+      status = SecItemUpdate(query as CFDictionary, attributesToUpdate)
+    }
+    
+    guard status == errSecSuccess else {
+      print("Save failed, status: \(status)")
+      return false
+    }
+    
+    return true
+  }
+  
+  func getFromKeychain() -> String? {
+    let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                kSecAttrAccount as String: Keys.userDefaultsKey,
+                                kSecMatchLimit as String: kSecMatchLimitOne,
+                                kSecReturnAttributes as String: true,
+                                kSecUseAuthenticationContext as String: context,
+                                kSecReturnData as String: true]
+    
+    var item: CFTypeRef?
+    let status = SecItemCopyMatching(query as CFDictionary, &item)
+    guard status == errSecSuccess else {
+      print("Failed to read from keychain, status: \(status)")
+      return nil
+    }
+    
+    guard let existingItem = item as? [String: Any],
+          let valueData = existingItem[kSecValueData as String] as? Data,
+          let value = String(data: valueData, encoding: String.Encoding.utf8)
+    else {
+      print("Failed to get parse the value from keychain.")
+      return nil
+    }
+    
+    return value
   }
 }

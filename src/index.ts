@@ -8,6 +8,6 @@ export const getData = async (secure: boolean) => {
   return await CerbyUserDefaultsModule.getData(secure);
 };
 
-export const clear = async () => {
-  return await CerbyUserDefaultsModule.clear();
+export const clear = async (secure: boolean) => {
+  return await CerbyUserDefaultsModule.clear(secure);
 };
