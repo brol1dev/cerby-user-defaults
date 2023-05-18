@@ -10,12 +10,18 @@ export default function App() {
   const [lockName, setLockName] = useState("lock-open");
   const [secureMode, setSecureMode] = useState(false);
   const [secureButtonColor, setSecureButtonColor] = useState("#808080");
-  const debouncedData = useDebounce(data);
+  const debouncedData = useDebounce(data, 1000);
 
   const getData = async () => {
     try {
-      const dataResult = (await CerbyUserDefaults.getData(true)) as string;
+      const dataResult = (await CerbyUserDefaults.getData(
+        secureMode
+      )) as string;
+      console.log(`read in secure mode: ${secureMode}, value: ${dataResult}`);
       setData(dataResult);
+      if (lockName === "lock") {
+        setLockName("lock-open");
+      }
     } catch (error) {
       // The normal scenario here is that nothing was previously saved.
       console.log(error);
@@ -28,8 +34,9 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    console.log("debounced");
     const sendData = async () => {
-      await CerbyUserDefaults.saveData(debouncedData, true);
+      await CerbyUserDefaults.saveData(debouncedData, secureMode);
     };
     sendData();
   }, [debouncedData]);
@@ -42,16 +49,25 @@ export default function App() {
     } else {
       setSecureButtonColor("#808080");
     }
+    getData();
   }, [secureMode]);
+
+  // useEffect(() => {
+  //   if (lockName === lock)
+  // }, [lockName]);
 
   const lockButtonPressed = () => {
     console.log("lockButtonPressed");
-    setLockName(lockName === "lock-open" ? "lock" : "lock-open");
+    if (!secureMode) {
+      return;
+    } else {
+      getData();
+    }
+    setLockName("lock");
   };
 
   const modeButtonPressed = () => {
-    // setSecureMode(!secureMode);
-    getData();
+    setSecureMode(!secureMode);
     console.log("modeButtonPressed");
   };
 
@@ -83,6 +99,17 @@ export default function App() {
     },
   ];
 
+  if (lockName === "lock" && secureMode) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.titleText}>Save Note 👀 📝</Text>
+        <HorizontalNavigation leftItems={leftItems} rightItems={rightItems} />
+        <View style={styles.textInputContainer}>
+          <View style={styles.overview} />
+        </View>
+      </SafeAreaView>
+    );
+  }
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.titleText}>Save Note 👀 📝</Text>
@@ -123,5 +150,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 26,
     marginBottom: 16,
+  },
+  overview: {
+    flex: 1,
+    width: "90%",
+    height: "100%",
+    backgroundColor: "#000",
   },
 });
