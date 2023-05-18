@@ -28,7 +28,10 @@
   "author": "Eric Vargas <eric.vargas.mx@gmail.com> (https://github.com/rcvrgs)",
   "license": "MIT",
   "homepage": "https://github.com/rcvrgs/cerby-user-defaults#readme",
-  "dependencies": {},
+  "dependencies": {
+    "jest": "^29.2.1",
+    "jest-expo": "^48.0.2"
+  },
   "devDependencies": {
     "@types/react": "^18.0.25",
     "@types/react-native": "^0.70.6",
@@ -39,5 +42,11 @@
     "expo": "*",
     "react": "*",
     "react-native": "*"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
+    ]
   }
 }
