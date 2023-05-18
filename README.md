@@ -3,10 +3,10 @@
 - [Cerby User Defaults (Take Home Challenge)](#cerby-user-defaults-take-home-challenge)
 - [Installation](#installation)
   - [Requirements](#requirements)
-- [Install](#install)
-  - [Sample app](#sample-app)
-    - [Normal mode](#normal-mode)
-    - [Secure mode](#secure-mode)
+  - [Install](#install)
+- [Sample app](#sample-app)
+  - [Normal mode](#normal-mode)
+  - [Secure mode](#secure-mode)
   - [Clear](#clear)
 - [Swift native module](#swift-native-module)
 - [LICENSE](#license)
@@ -27,7 +27,7 @@ Bootstrapped project using `npx create-expo-module` ([reference](https://docs.ex
 * Xcode 14.2+
 * Node (tested with v18.16.0, but might work with v16.x)
 
-# Install
+## Install
 
 To test the module, this project makes use of an sample app. You can find it in the `example/` directory.
 
@@ -43,11 +43,11 @@ Alternatively, you can also run
 ```sh
 npm run open:ios
 ```
-in the root directory of the project to Open the sample app in Xcode. In Xcode, run the app normally.
+in the root directory of the project to open the sample app in Xcode. In Xcode, run the app normally.
 
 > 💡 **_NOTE:_** The app makes use of FaceID and TouchID. This can only be used with a real device, not a simulator. Use [this guide](https://github.com/expo/fyi/blob/main/setup-xcode-signing.md) to prepare your device. You need an Apple Developer account.
 
-## Sample app
+# Sample app
 
 Preview:
 
@@ -59,11 +59,11 @@ The sample app has a simple UX. It has two modes, normal and secure.
 
 The text area has an autosave feature, which saves the text in it after 2 seconds. The data is saved in UserDefaults or the Keychain, depending on the mode.
 
-### Normal mode
+## Normal mode
 
 Saves data to UserDefaults.
 
-### Secure mode
+## Secure mode
 
 Saves data to the Keychain. Whenever autosave is triggered, the user is prompted with FaceID.
 
