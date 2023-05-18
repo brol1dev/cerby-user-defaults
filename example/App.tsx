@@ -20,29 +20,34 @@ export default function App() {
       )) as string;
       console.log(`read in secure mode: ${secureMode}, value: ${dataResult}`);
       setData(dataResult);
+
       if (lockName === "lock") {
         setLockName("lock-open");
       }
     } catch (error) {
-      // The normal scenario here is that nothing was previously saved.
       console.log(error);
+      if (secureMode) {
+        // This case includes when FaceID fails.
+        setLockName("lock");
+        return;
+      }
+      // The normal scenario here is that nothing was previously saved.
       setData("");
     }
   };
 
+  // Get data on first load.
   useEffect(() => {
     getData();
   }, []);
 
+  // Autosave logic.
   useEffect(() => {
-    console.log("debounced");
     const sendData = async () => {
       await CerbyUserDefaults.saveData(debouncedData, secureMode);
     };
     sendData();
   }, [debouncedData]);
-
-  useEffect(() => {}, [lockName]);
 
   useEffect(() => {
     if (secureMode) {
@@ -56,23 +61,20 @@ export default function App() {
   }, [secureMode]);
 
   const lockButtonPressed = () => {
-    console.log("lockButtonPressed");
+    // Lock button should only work when secure mode is enabled.
     if (!secureMode) {
       return;
-    } else {
-      getData();
     }
+    getData();
     setLockName("lock");
   };
 
   const modeButtonPressed = () => {
     setSecureMode(!secureMode);
-    console.log("modeButtonPressed");
   };
 
   const trashButtonPressed = () => {
     clear();
-    console.log("trashButtonPressed");
     getData();
   };
 
@@ -86,6 +88,7 @@ export default function App() {
       onPress: trashButtonPressed,
     },
   ];
+
   const rightItems = [
     {
       name: "exchange-alt",
@@ -105,11 +108,12 @@ export default function App() {
         <Text style={styles.titleText}>Save Note 👀 📝</Text>
         <HorizontalNavigation leftItems={leftItems} rightItems={rightItems} />
         <View style={styles.textInputContainer}>
-          <View style={styles.overview} />
+          <View style={styles.secureView} />
         </View>
       </SafeAreaView>
     );
   }
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.titleText}>Save Note 👀 📝</Text>
@@ -151,7 +155,7 @@ const styles = StyleSheet.create({
     fontSize: 26,
     marginBottom: 16,
   },
-  overview: {
+  secureView: {
     flex: 1,
     width: "90%",
     height: "100%",
