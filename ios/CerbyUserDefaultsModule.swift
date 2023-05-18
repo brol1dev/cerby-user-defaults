@@ -121,6 +121,9 @@ public class CerbyUserDefaultsModule: Module {
     var item: CFTypeRef?
     let status = SecItemCopyMatching(query as CFDictionary, &item)
     guard status == errSecSuccess else {
+      if status == errSecItemNotFound {
+        return ""
+      }
       print("Failed to read from keychain, status: \(status)")
       return nil
     }
