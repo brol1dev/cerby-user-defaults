@@ -14,9 +14,7 @@ export default function App() {
 
   const getData = async () => {
     try {
-      const dataResult = (await CerbyUserDefaults.getData(
-        secureMode
-      )) as string;
+      const dataResult = (await CerbyUserDefaults.getData(true)) as string;
       setData(dataResult);
     } catch (error) {
       // The normal scenario here is that nothing was previously saved.
@@ -31,7 +29,7 @@ export default function App() {
 
   useEffect(() => {
     const sendData = async () => {
-      await CerbyUserDefaults.saveData(debouncedData, secureMode);
+      await CerbyUserDefaults.saveData(debouncedData, true);
     };
     sendData();
   }, [debouncedData]);
@@ -52,7 +50,8 @@ export default function App() {
   };
 
   const modeButtonPressed = () => {
-    setSecureMode(!secureMode);
+    // setSecureMode(!secureMode);
+    getData();
     console.log("modeButtonPressed");
   };
 
@@ -64,7 +63,7 @@ export default function App() {
 
   const clear = async () => {
     await CerbyUserDefaults.clear();
-  }
+  };
 
   const leftItems = [
     {
