@@ -29,7 +29,19 @@ Bootstrapped project using `npx create-expo-module` ([reference](https://docs.ex
 
 ## Install
 
-To test the module, this project makes use of an sample app. You can find it in the `example/` directory.
+First install the dependencies.
+
+```sh
+npm install
+```
+
+And the sample app dependencies too.
+```sh
+cd example/
+npm install
+```
+
+To test the module, this project makes use of a sample app. You can find it in the `example/` directory.
 
 Run it with
 ```sh
