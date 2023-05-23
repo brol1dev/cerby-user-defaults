@@ -9,13 +9,13 @@
   - [Secure mode](#secure-mode)
   - [Clear](#clear)
 - [Swift native module](#swift-native-module)
+- [Design](#design)
 - [LICENSE](#license)
 - [Out of scope](#out-of-scope)
 
 React native module written in Swift. Used to store a string to UserDefaults or Keychain.
 
 Bootstrapped project using `npx create-expo-module` ([reference](https://docs.expo.dev/modules/get-started/#creating-a-new-module-with-an-example-project))
-
 
 
 # Installation
@@ -98,6 +98,10 @@ The Swift code is in `src/ios/`.
 This module is in charge of saving to UserDefaults or Keychain, depending on the secure argument.
 
 It uses Expo Module API. Specifically the [AsyncFunction](https://docs.expo.dev/modules/module-api/#asyncfunction) to make use of promises. This means that in the JS side of React Native `async/await` can be used.
+
+# Design
+
+Check the design of the app in [docs/design-process.md](docs/design-process.md)
 
 # LICENSE
 This project is licensed under the terms of the MIT license.
