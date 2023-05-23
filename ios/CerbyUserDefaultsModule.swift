@@ -2,7 +2,6 @@ import ExpoModulesCore
 import LocalAuthentication
 
 struct Keys {
-  static let keychainIdentifier = "cerby"
   static let userDefaultsKey = "myData"
 }
 
